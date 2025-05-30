@@ -26,7 +26,3 @@ def imshow(img):
     plt.show()
 
 
-# get some random training images
-dataiter = iter(trainloader)
-images, labels = next(dataiter)
-

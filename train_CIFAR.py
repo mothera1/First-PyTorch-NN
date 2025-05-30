@@ -3,10 +3,14 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
+import matplotlib.pyplot as plt
+
 
 from load_CIFAR import *
 from CNN_CIFAR import Net
 from Hnn_CIFAR import H
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 def train(criterion, optimizer, model):
     for epoch in range(2):  # loop over the dataset multiple times
@@ -14,7 +18,7 @@ def train(criterion, optimizer, model):
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
-            inputs, labels = data
+            inputs, labels = data[0].to(device), data[1].to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -35,16 +39,21 @@ def train(criterion, optimizer, model):
 
 model = H()
 
-#criterion = nn.CrossEntropyLoss()
-criterion = nn.MultiMarginLoss()
+model.to(device)
+
+
+
+criterion = nn.CrossEntropyLoss()
+#criterion = nn.MultiMarginLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
-train(criterion, optimizer, model)
+loss_history = train(criterion, optimizer, model)
 
 #PATH = './cifar_net_cross_entropy.pth'
 #PATH = './cifar_net_hinge.pth'\
 #PATH = './cifar_h_cross_entropy.pth'
-PATH = './cifar_h_hinge.pth'
+#PATH = './cifar_h_hinge.pth'
 
 
-torch.save(model.state_dict(), PATH)
+#torch.save(model.state_dict(), PATH)
+
