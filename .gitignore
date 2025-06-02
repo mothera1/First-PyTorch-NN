@@ -1,0 +1,6 @@
+venv/
+Pets/
+data/
+__pycache__/
+CE_Graphs.png
+Hinge_dubious.png
