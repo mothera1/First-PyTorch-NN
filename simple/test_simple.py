@@ -8,7 +8,7 @@ from simple_NN import Simple
 model = Simple()
 
 
-PATH = './simple_cifar_hinge.pth'
+PATH = './simple_cifar_CE.pth'
 model.load_state_dict(torch.load(PATH, weights_only=True))
 
 correct = 0

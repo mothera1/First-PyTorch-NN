@@ -10,7 +10,7 @@ def train(criterion, optimizer, model, epochs = 10):
         
     history = {'train_loss': [], 'val_loss': [], 'train_acc': [], 'val_acc': []}
 
-    for i in range(epochs):
+    for epoch in range(epochs):
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
@@ -38,8 +38,8 @@ def train(criterion, optimizer, model, epochs = 10):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = Simple().to(device)
 
-#criterion = nn.CrossEntropyLoss()
-criterion = nn.MultiMarginLoss()
+criterion = nn.CrossEntropyLoss()
+#criterion = nn.MultiMarginLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 train(criterion, optimizer, model)
