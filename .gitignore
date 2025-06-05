@@ -2,5 +2,7 @@ venv/
 Pets/
 data/
 __pycache__/
-CE_Graphs.png
-Hinge_dubious.png
+compare2.png
+compare.png
+CE_loss_firstlayer_frozen.png
+CE_loss_nofreeze.png

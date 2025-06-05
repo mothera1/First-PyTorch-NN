@@ -20,3 +20,14 @@ class Simple(nn.Module):
         x = self.dropout(x)
         x = self.fc3(x)
         return x
+
+
+#questions for meeting:
+#schedule -> I run away at 3pm today and then come back
+#general ML questions -> hyperparameters? Validation, train, test? Which loss do we care about?
+#why freeze? Methodology behInd freezing? 
+#I read online that it is optimal to use a convolutional NN for CIFAR, I am not, is this something that should be explored?
+#test loss as batches every 2000ish
+
+
+#do 4x4 and 3 classes in tandem
