@@ -3,9 +3,11 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Subset
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
 import numpy as np
+from collections import defaultdict, Counter
 
-batch_size = 4
+batch_size = 1
 
 transform = transform = transforms.Compose([
     transforms.ToTensor(),
@@ -56,72 +58,3 @@ def imshow(img):
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
 
-"""
-for batch_idx, (images, labels) in enumerate(testloader):
-    print(f"\nBatch {batch_idx}:")
-    
-    # Look at first image in this batch
-    first_image = images[0].permute(1, 2, 0).numpy()
-    
-    if first_image.max() <= 1.0:
-        first_image = (first_image * 255).astype(np.uint8)
-    
-    print("RGB values:")
-    for row in range(4):
-        for col in range(4):
-            r, g, b = first_image[row, col]
-            print(f"({r:3d},{g:3d},{b:3d})", end=" ")
-        print()
-
-"""
-
-def find_similar_images_batch(testloader, method='euclidean', threshold=50, max_images=500):
-    all_images = []
-    all_labels = []
-    
-    # Collect images
-    for images, labels in testloader:
-        batch_size = images.shape[0]
-        # Flatten each image: (batch_size, 3, 4, 4) -> (batch_size, 48)
-        images_flat = images.view(batch_size, -1)
-        
-        all_images.append(images_flat)
-        all_labels.extend(labels.tolist())
-        
-        if len(all_labels) >= max_images:
-            break
-    
-    # Concatenate all images
-    all_images = torch.cat(all_images, dim=0)[:max_images]
-    all_labels = all_labels[:max_images]
-    
-    print(f"Comparing {len(all_images)} images...")
-    
-    if method == 'euclidean':
-        # Compute pairwise distances efficiently
-        distances = torch.cdist(all_images, all_images, p=2)
-        
-        # Find pairs below threshold (excluding diagonal)
-        mask = (distances < threshold) & (distances > 0)
-        indices = torch.nonzero(mask)
-        
-        similar_pairs = []
-        for idx in indices:
-            i, j = idx[0].item(), idx[1].item()
-            if i < j:  # Avoid duplicates
-                similar_pairs.append({
-                    'indices': (i, j),
-                    'distance': distances[i, j].item(),
-                    'labels': (all_labels[i], all_labels[j])
-                })
-    
-    return similar_pairs
-
-# Usage
-similar_pairs = find_similar_images_batch(testloader, threshold=30)
-print(f"Found {len(similar_pairs)} similar pairs")
-
-# Show some examples
-for pair in similar_pairs[:10]:
-    i, j = pair['indices']
-    print(f"Images {i} and {j}: distance={pair['distance']:.2f}, labels=({pair['labels'][0]}, {pair['labels'][1]})")

@@ -25,3 +25,10 @@ class Blob(nn.Module):
 #take sample from test set, see if the RGB values for a given item appear multiple times
 #do this to see if we have created ambiguity
 #look for the frequency of the mistake based on the ambiguous examples
+
+#check for direct duplicates and then similar values through eucldean distance
+#plot data distribution on simplex
+
+#should I come up with a average color per class and have this as what defines a class?
+
+#look at the SAME averaged RGB Values
