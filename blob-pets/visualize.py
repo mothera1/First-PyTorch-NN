@@ -4,6 +4,7 @@ import numpy as np
 from collections import defaultdict, Counter
 
 from load_blob_pets import *
+from test_blob import *
 
 master = []
 for batch_idx, data in enumerate(testloader):
@@ -48,55 +49,87 @@ for image in master:
         rounded_values = [(int(val) // 10) * 10 for val in avg_values]
         avg_rgb.append({key: rounded_values})
     
-print(avg_rgb[-1])
+print(avg_rgb[-2])
 
-rgb_class_counts = defaultdict(list)
+print(predictions[-2])
 
-for item in avg_rgb:
-    for class_label, rgb_values in item.items():
-        rgb_tuple = tuple(rgb_values)  
-        rgb_class_counts[rgb_tuple].append(class_label)
+pred_wrgb = []
+for i in range(len(avg_rgb)):
+    pred_wrgb.append({str(predictions[i]): list(avg_rgb[i].values())})
 
-rgb_proportions = {}
-unique_classes = set()
+pred_wrgb = [{key: value[0] for key, value in item.items()} for item in pred_wrgb]
 
-for rgb_tuple, class_list in rgb_class_counts.items():
-    class_counts = Counter(class_list)
-    total_count = len(class_list)
+print(pred_wrgb[-2])
 
-    unique_classes.update(class_counts.keys())
+def plot(avg_rgb):
+    rgb_class_counts = defaultdict(list)
+
+    for item in avg_rgb:
+        for class_label, rgb_values in item.items():
+            rgb_tuple = tuple(rgb_values)  
+            rgb_class_counts[rgb_tuple].append(class_label)
+
+    rgb_proportions = {}
+    unique_classes = set()
+
+    for rgb_tuple, class_list in rgb_class_counts.items():
+        class_counts = Counter(class_list)
+        total_count = len(class_list)
+
+        unique_classes.update(class_counts.keys())
+        
+        proportions = {cls: count/total_count for cls, count in class_counts.items()}
+        rgb_proportions[rgb_tuple] = proportions
+
+    unique_classes = sorted(list(unique_classes))
+
+
+    def rgb_to_ternary_coords(proportions, classes):
+        if len(classes) != 3:
+            print(f"Warning: Found {len(classes)} classes, ternary plot needs exactly 3")
+            return None, None
+        
+        # Get proportions for each class (0 if not present)
+        p1 = proportions.get(classes[0], 0)
+        p2 = proportions.get(classes[1], 0)
+        p3 = proportions.get(classes[2], 0)
+        
+        # Normalize to ensure they sum to 1
+        total = p1 + p2 + p3
+        if total == 0:
+            return None, None
+        
+        p1, p2, p3 = p1/total, p2/total, p3/total
+        
+        # Convert to Cartesian coordinates for plotting
+        x = 0.5 * (2*p2 + p3)
+        y = (np.sqrt(3)/2) * p3
+        
+        return x, y
+
+
+    # Step 4: Create the plot
     
-    proportions = {cls: count/total_count for cls, count in class_counts.items()}
-    rgb_proportions[rgb_tuple] = proportions
+    # Only proceed if we have exactly 3 classes
+    if len(unique_classes) == 3:
+        # Plot each RGB value
+        x_coords = []
+        y_coords = []
+        
+        for rgb_tuple, proportions in rgb_proportions.items():
+            x, y = rgb_to_ternary_coords(proportions, unique_classes)
+            if x is not None and y is not None:
+                x_coords.append(x)
+                y_coords.append(y)
 
-unique_classes = sorted(list(unique_classes))
-print(f"Classes found: {unique_classes}")
+        ids = [str(i) for i in range(1213)]
 
-def rgb_to_ternary_coords(proportions, classes):
-    if len(classes) != 3:
-        print(f"Warning: Found {len(classes)} classes, ternary plot needs exactly 3")
-        return None, None
-    
-    # Get proportions for each class (0 if not present)
-    p1 = proportions.get(classes[0], 0)
-    p2 = proportions.get(classes[1], 0)
-    p3 = proportions.get(classes[2], 0)
-    
-    # Normalize to ensure they sum to 1
-    total = p1 + p2 + p3
-    if total == 0:
-        return None, None
-    
-    p1, p2, p3 = p1/total, p2/total, p3/total
-    
-    # Convert to Cartesian coordinates for plotting
-    x = 0.5 * (2*p2 + p3)
-    y = (np.sqrt(3)/2) * p3
-    
-    return x, y
+        
+    return x_coords, y_coords
+ 
+x_avg, y_avg = plot(avg_rgb)
+x_pred, y_pred = plot(pred_wrgb)
 
-
-# Step 4: Create the plot
 fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
 # Draw the triangle
@@ -105,34 +138,27 @@ triangle_y = [0, 0, np.sqrt(3)/2, 0]
 ax.plot(triangle_x, triangle_y, 'k-', linewidth=2)
 
 
-# Only proceed if we have exactly 3 classes
-if len(unique_classes) == 3:
-    # Plot each RGB value
-    x_coords = []
-    y_coords = []
-    
-    for rgb_tuple, proportions in rgb_proportions.items():
-        x, y = rgb_to_ternary_coords(proportions, unique_classes)
-        if x is not None and y is not None:
-            x_coords.append(x)
-            y_coords.append(y)
-    
-    # Create scatter plot with uniform size and color
-    scatter = ax.scatter(x_coords, y_coords, c='blue', s=50, alpha=0.7, edgecolors='black')
-    
-    # Add class name labels at triangle corners
-    ax.text(-0.05, -0.05, 'dog', fontsize=14, ha='right', va='top', 
-            fontweight='bold')
-    ax.text(1.05, -0.05, 'cat', fontsize=14, ha='left', va='top', 
-            fontweight='bold')
-    ax.text(0.5, np.sqrt(3)/2 + 0.05, 'bird', fontsize=14, ha='center', va='bottom', 
-            fontweight='bold')
-    
-    ax.set_xlim(-0.1, 1.1)
-    ax.set_ylim(-0.1, np.sqrt(3)/2 + 0.1)
-    ax.set_aspect('equal')
-    ax.axis('off')
-    ax.set_title('Class Distribution Simplex', fontsize=14)
+# Create scatter plot with uniform size and color
+ax.scatter(x_avg, y_avg, marker='o', c='blue', s=50, alpha=0.7, edgecolors='black')
+ax.scatter(x_pred, y_pred, marker='+', c='red', s=50, alpha=0.7, edgecolors='black')
+"""
+for i, txt in enumerate(ids):
+    plt.annotate(txt, (x_coords[i], y_coords[i]))
+"""
+
+# Add class name labels at triangle corners
+ax.text(-0.05, -0.05, 'dog', fontsize=14, ha='right', va='top', 
+        fontweight='bold')
+ax.text(1.05, -0.05, 'cat', fontsize=14, ha='left', va='top', 
+        fontweight='bold')
+ax.text(0.5, np.sqrt(3)/2 + 0.05, 'bird', fontsize=14, ha='center', va='bottom', 
+        fontweight='bold')
+
+ax.set_xlim(-0.1, 1.1)
+ax.set_ylim(-0.1, np.sqrt(3)/2 + 0.1)
+ax.set_aspect('equal')
+ax.axis('off')
+ax.set_title('Class Distribution Simplex', fontsize=14)
 
 
 plt.tight_layout()
