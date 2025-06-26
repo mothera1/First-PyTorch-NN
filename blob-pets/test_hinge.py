@@ -7,13 +7,13 @@ from limited_nn import limited
 
 #model = limited()
 model = Blob()
-PATH = './CE.pth'
+PATH = './Hinge.pth'
 
 model.load_state_dict(torch.load(PATH, weights_only=True))
 
 correct = 0
 total = 0
-predictions = []
+predictions_h = []
 
 with torch.no_grad():
     for data in testloader:
@@ -23,13 +23,13 @@ with torch.no_grad():
         outputs = model(images)
         # the class with the highest energy is what we choose as prediction
         _, predicted = torch.max(outputs, 1)
-        predictions.append(predicted)
+        predictions_h.append(predicted)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
 print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
 
-print(len(predictions))
+print(len(predictions_h))
 
 """
 

@@ -4,5 +4,7 @@ data/
 __pycache__/
 compare2.png
 compare.png
-CE_loss_firstlayer_frozen.png
-CE_loss_nofreeze.png
+CE.pth
+Hinge.pth
+limited_CE.pth
+limited_Hinge.pth

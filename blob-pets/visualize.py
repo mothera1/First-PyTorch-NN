@@ -1,10 +1,13 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
+import matplotlib.cm as cm
 import numpy as np
 from collections import defaultdict, Counter
+import random
 
 from load_blob_pets import *
 from test_blob import *
+from test_hinge import *
 
 master = []
 for batch_idx, data in enumerate(testloader):
@@ -46,7 +49,7 @@ for image in master:
         # Convert to numpy array and calculate mean
         rgb_array = np.array(rgb_list)
         avg_values = rgb_array.mean(axis=0).tolist()
-        rounded_values = [(int(val) // 10) * 10 for val in avg_values]
+        rounded_values = [round(int(val) / 20) * 20 for val in avg_values]
         avg_rgb.append({key: rounded_values})
     
 print(avg_rgb[-2])
@@ -59,7 +62,11 @@ for i in range(len(avg_rgb)):
 
 pred_wrgb = [{key: value[0] for key, value in item.items()} for item in pred_wrgb]
 
-print(pred_wrgb[-2])
+pred_wrgb_h = []
+for i in range(len(avg_rgb)):
+    pred_wrgb_h.append({str(predictions_h[i]): list(avg_rgb[i].values())})
+
+pred_wrgb_h = [{key: value[0] for key, value in item.items()} for item in pred_wrgb_h]
 
 def plot(avg_rgb):
     rgb_class_counts = defaultdict(list)
@@ -129,6 +136,10 @@ def plot(avg_rgb):
  
 x_avg, y_avg = plot(avg_rgb)
 x_pred, y_pred = plot(pred_wrgb)
+x_h, y_h = plot(pred_wrgb_h)
+
+print(len(x_avg))
+print(len(x_pred))
 
 fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
@@ -139,12 +150,30 @@ ax.plot(triangle_x, triangle_y, 'k-', linewidth=2)
 
 
 # Create scatter plot with uniform size and color
+random.seed(42)
+indices = random.sample(range(len(x_avg)), 10)
+
+
+x_avg = [x_avg[i] for i in indices]
+y_avg = [y_avg[i] for i in indices]
+x_pred = [x_pred[i] for i in indices]
+y_pred = [y_pred[i] for i in indices]
+x_h = [x_h[i] for i in indices]
+y_h = [y_h[i] for i in indices]
+
 ax.scatter(x_avg, y_avg, marker='o', c='blue', s=50, alpha=0.7, edgecolors='black')
+ax.scatter(x_h, y_h, marker='v', c='green', s=50, alpha=0.7, edgecolors='black')
 ax.scatter(x_pred, y_pred, marker='+', c='red', s=50, alpha=0.7, edgecolors='black')
-"""
-for i, txt in enumerate(ids):
-    plt.annotate(txt, (x_coords[i], y_coords[i]))
-"""
+
+ax.plot([0.5, 0.5, 0.75, 0.5, 0.25], [0, np.sqrt(3)/6, 0.433, np.sqrt(3)/6, 0.433], 'k--', lw=1)
+
+
+for xa, ya, xp, yp in zip(x_avg, y_avg, x_pred, y_pred):
+    ax.plot([xa, xp], [ya, yp], color='gray', linestyle='--', linewidth=1)
+
+for xa, ya, xp, yp in zip(x_avg, y_avg, x_h, y_h):
+    ax.plot([xa, xp], [ya, yp], color='gray', linestyle='--', linewidth=1)
+
 
 # Add class name labels at triangle corners
 ax.text(-0.05, -0.05, 'dog', fontsize=14, ha='right', va='top', 

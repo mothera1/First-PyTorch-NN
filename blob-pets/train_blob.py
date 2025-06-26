@@ -4,7 +4,7 @@ import torch.optim as optim
 
 from load_blob_pets import *
 from blob_nn import Blob
-from blob_cnn import CNN
+from limited_nn import limited
 
 def train(criterion, optimizer, model, epochs = 25):
     model.train()
@@ -35,22 +35,18 @@ def train(criterion, optimizer, model, epochs = 25):
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-model = Blob()
+#model = Blob()
 #model = CNN()
+model = limited()
 model.to(device)
-
-
-for i in model.fc1.parameters():
-    i.requires_grad = False
-
-
-criterion = nn.CrossEntropyLoss()
-#criterion = nn.MultiMarginLoss()
-optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
+class_weights = class_weights_dataloader.to(device)
+#criterion = nn.CrossEntropyLoss()
+criterion = nn.MultiMarginLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 history = train(criterion, optimizer, model)
 
-PATH = './blob_CE_fc1_frozen.pth'
+PATH = './limited_Hinge.pth'
 torch.save(model.state_dict(), PATH)
 
 plt.plot(history, color='blue', marker='o')

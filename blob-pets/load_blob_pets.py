@@ -58,3 +58,25 @@ def imshow(img):
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
 
+def calculate_class_weights_from_dataloader(dataloader, label_mapping, num_classes=3):
+    """
+    Calculate class weights by iterating through DataLoader once
+    """
+    class_counts = torch.zeros(num_classes)
+    total_samples = 0
+    
+    for inputs, targets in dataloader:
+        # Map the original labels to new labels
+        mapped_targets = torch.tensor([label_mapping[target.item()] for target in targets])
+        
+        # Count occurrences of each class in this batch
+        for class_idx in range(num_classes):
+            class_counts[class_idx] += (mapped_targets == class_idx).sum().item()
+        total_samples += mapped_targets.size(0)
+    
+    # Calculate weights (inverse frequency)
+    weights = total_samples / (num_classes * class_counts)
+    return weights
+
+class_weights_dataloader = calculate_class_weights_from_dataloader(trainloader, label_mapping, num_classes=3)
+
